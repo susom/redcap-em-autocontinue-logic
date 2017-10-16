@@ -1,0 +1,47 @@
+{
+  "name": "AutoContinue Logic",
+
+  "namespace":"Stanford\\AutoContinueLogic",
+
+  "description": "A module for incorporating logic into the autocontinue surveys",
+
+  "versions": [
+    { "0.1": "Initial Development Version" }
+  ],
+
+  "authors": [
+    {
+      "name": "Andy Martin",
+      "email": "andy123@stanford.edu",
+      "institution": "Stanford University"
+    },
+    {
+      "name": "YongJae Lee",
+      "email": "jael@stanford.edu",
+      "institution": "Stanford University"
+    }
+  ],
+
+  "permissions": [
+    "hook_survey_page_top"
+  ],
+
+  "links": {
+    "control-center": [
+    ],
+    "project": [
+    ]
+  },
+
+  "system-settings": [
+  ],
+
+  "project-settings": [
+    {
+      "key": "autocontinue_logic",
+      "name": "Specify the autocontinue logic in json",
+      "required": false,
+      "type": "json"
+    }
+  ]
+}
