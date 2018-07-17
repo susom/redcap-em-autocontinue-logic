@@ -39,9 +39,9 @@
   "project-settings": [
     {
       "key": "autocontinue_logic",
-      "name": "Specify the autocontinue logic in json",
+      "name": "Specify the autocontinue logic in json format<br>Sorry for the bad interface, but for now you must enter<br>a single-line json expression (no carraige returns)<br>where they keys are the instrument names and<br>the values are the expressions.  Be sure to include<br>event names before variables if needed.<br>If a survey name exists as a key in this json array, then<br>the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
       "required": false,
-      "type": "json"
+      "type": "textarea"
     }
   ]
 }
