@@ -13,26 +13,49 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
     function  hook_survey_page_top($project_id, $record = NULL, $instrument, $event_id, $group_id = NULL, $survey_hash = NULL, $response_id = NULL, $repeat_instance = 1)
     {
-        //get the config entry for  autocontinue_logic
-        $config_entry = $this->getProjectSetting('autocontinue_logic');
-        // strip carriage returns
-        $config_entry = preg_replace("/[\n\r]/","",$config_entry);
-        // \Plugin::log($config_entry, "DEBUG", "config entry");
 
-        if (!empty($config_entry)) {
+        $auto_continue_logic = array();
+        $all_settings = $this->getProjectSettings($project_id);
 
-            $auto_continue_logic = json_decode($config_entry, true);
-           // \Plugin::log($auto_continue_logic, "DEBUG", "AUTO CONTINUE LOGIC FOUND");
-
-        } else {
-
-            $msg =  "This project uses Auto-Continue Logic External Module.  The logic is either invalid or missing.  Please check.";
-            \REDCap::logEvent($msg, "", "", $record, $event_id, $project_id);
-
-            // \Plugin::log($msg, "ERROR");
-            //todo: bubble up to project?  logging?
-
+        if (! empty($all_settings['autocontinue_logic']['value'])) {
+            $json = preg_replace("/[\n\r]/","",$all_settings['autocontinue_logic']['value']);
+            $auto_continue_logic = json_decode($json,true);
         }
+
+        if (! empty($all_settings['instrument_name']['value'])) {
+            $instruments = $all_settings['instrument_name']['value'];
+            $logics = $all_settings['instrument_logic']['value'];
+            foreach ($instruments as $i => $instrument_name) {
+                $auto_continue_logic[$instrument_name] = $logics[$i];
+            }
+        }
+
+
+
+        // //get the config entry for  autocontinue_logic
+        // $config_entry = $this->getProjectSetting('autocontinue_logic');
+        // // strip carriage returns
+        // $config_entry = preg_replace("/[\n\r]/","",$config_entry);
+        // // \Plugin::log($config_entry, "DEBUG", "config entry");
+        //
+
+
+        \Plugin::log($auto_continue_logic,"DEBUG");
+
+        // if (!empty($config_entry)) {
+        //
+        //     $auto_continue_logic = json_decode($config_entry, true);
+        //    // \Plugin::log($auto_continue_logic, "DEBUG", "AUTO CONTINUE LOGIC FOUND");
+        //
+        // } else {
+        //
+        //     $msg =  "This project uses Auto-Continue Logic External Module.  The logic is either invalid or missing.  Please check.";
+        //     \REDCap::logEvent($msg, "", "", $record, $event_id, $project_id);
+        //
+        //     // \Plugin::log($msg, "ERROR");
+        //     //todo: bubble up to project?  logging?
+        //
+        // }
 
         // Check if custom logic is applied to this instrument
         if (isset ($auto_continue_logic [$instrument])) {

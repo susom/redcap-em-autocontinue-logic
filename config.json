@@ -38,8 +38,39 @@
 
   "project-settings": [
     {
+      "key": "descriptive-text",
+      "name": "<b>This module is to be used with surveys and the 'autocontinue' checkbox in survey options.  It can be used as an alternative to the Survey Queue and does not require re-programming for each event.</b>",
+      "type": "descriptive"
+    },
+    {
+      "key": "ac_logic_list",
+      "name": "List of Instruments and Logic",
+      "required": false,
+      "type": "sub_settings",
+      "repeatable":true,
+      "sub_settings":[
+        {
+          "key": "instrument_name",
+          "name": "<b>Name of Survey Instrument</b><br>Prior survey must use auto-continue",
+          "required": true,
+          "type": "form-list"
+        },
+        {
+          "key": "instrument_logic",
+          "name": "<b>Logic (must be TRUE or survey is skipped)</b><br><i>(e.g. [field_1] > 5)</i>",
+          "required": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "descriptive-text2",
+      "name": "<b>You can also use the old-school JSON format below - but normally the config options above should suffice.</b>",
+      "type": "descriptive"
+    },
+    {
       "key": "autocontinue_logic",
-      "name": "Specify the autocontinue logic in json format<br>Sorry for the bad interface, but for now you must enter<br>a single-line json expression (no carraige returns)<br>where they keys are the instrument names and<br>the values are the expressions.  Be sure to include<br>event names before variables if needed.<br>If a survey name exists as a key in this json array, then<br>the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
+      "name": "Enter a json object where they keys are the instrument<br>names and the values are the expressions.<br>Be sure to include event names before variables<br>if needed in logic.<br>If a survey name exists as a key in this json array,<br>then the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
       "required": false,
       "type": "textarea"
     }
