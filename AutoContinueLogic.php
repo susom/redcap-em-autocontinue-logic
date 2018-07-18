@@ -17,11 +17,13 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         $auto_continue_logic = array();
         $all_settings = $this->getProjectSettings($project_id);
 
+        // First load the json options (stripping linefeeds)
         if (! empty($all_settings['autocontinue_logic']['value'])) {
             $json = preg_replace("/[\n\r]/","",$all_settings['autocontinue_logic']['value']);
             $auto_continue_logic = json_decode($json,true);
         }
 
+        // Next take the per-instrument settings
         if (! empty($all_settings['instrument_name']['value'])) {
             $instruments = $all_settings['instrument_name']['value'];
             $logics = $all_settings['instrument_logic']['value'];
@@ -29,33 +31,6 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 $auto_continue_logic[$instrument_name] = $logics[$i];
             }
         }
-
-
-
-        // //get the config entry for  autocontinue_logic
-        // $config_entry = $this->getProjectSetting('autocontinue_logic');
-        // // strip carriage returns
-        // $config_entry = preg_replace("/[\n\r]/","",$config_entry);
-        // // \Plugin::log($config_entry, "DEBUG", "config entry");
-        //
-
-
-        \Plugin::log($auto_continue_logic,"DEBUG");
-
-        // if (!empty($config_entry)) {
-        //
-        //     $auto_continue_logic = json_decode($config_entry, true);
-        //    // \Plugin::log($auto_continue_logic, "DEBUG", "AUTO CONTINUE LOGIC FOUND");
-        //
-        // } else {
-        //
-        //     $msg =  "This project uses Auto-Continue Logic External Module.  The logic is either invalid or missing.  Please check.";
-        //     \REDCap::logEvent($msg, "", "", $record, $event_id, $project_id);
-        //
-        //     // \Plugin::log($msg, "ERROR");
-        //     //todo: bubble up to project?  logging?
-        //
-        // }
 
         // Check if custom logic is applied to this instrument
         if (isset ($auto_continue_logic [$instrument])) {
@@ -82,19 +57,27 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             if ($logic_result == false) {
                 // If autocontinue is enabled - then redirect to next instrument
                 \REDCap::logEvent("$instrument skipped due to AutoContinue Logic EM", "", "", $record, $event_id, $project_id);
-                $this->exitAfterHook();
+                // $this->exitAfterHook();
+
                 global $end_survey_redirect_next_survey;
+
                 if ($end_survey_redirect_next_survey) {
                     // Try to get the next survey url
                     $next_survey_url = \Survey::getAutoContinueSurveyUrl($record, $instrument, $event_id);
                     // print "Redirecting you to $next_survey_url";
-                    // \Plugin::log("Redirecting $record from $instrument to $next_survey_url");
-                    redirect($next_survey_url);
+                    // \Plugin::log("Soft Redirecting $record from $instrument to $next_survey_url");
+                    // This is causing issues so I'm going to try a client-redirect
+                    // redirect($next_survey_url);
+                    $this->redirect($next_survey_url);
+                    return false;
                 } else {
                     // If there is a normal end-of-survey url - go there
                     global $end_survey_redirect_url;
                     if ($end_survey_redirect_url != "") {
-                        redirect($end_survey_redirect_url);
+                        // \Plugin::log("Redirecting to end_survey_redirect_url $record from $instrument to $end_survey_redirect_url");
+                        // redirect($end_survey_redirect_url);
+                        $this->redirect($end_survey_redirect_url);
+                        return false;
                     }                // Display the normal end-of-survey message with an additional note
                     else {
                         // Get full acknowledgement text (perform piping, if applicable)
@@ -103,7 +86,10 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
                         $custom_text = ""; // "<div class='yellow'><h3><center>This survey does not apply.</center></h3></div>";
                         // \Plugin::log("Survey logic is false for $record from $instrument but no auto-continue is enabled - displaying end of survey text.");
-                        exitSurvey($custom_text . $full_acknowledgement_text, false);
+                        // \Plugin::log("Calling ExitSurvey from $instrument to $full_acknowledgement_text / $acknowledgement");
+
+                        // The acknowledgement text comes from the last survey
+                        exitSurvey($acknowledgement, false);
                     }
                 }
                 // Catch all
@@ -112,6 +98,12 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 // administer the instrument
             }
         }
+    }
+
+
+    public function redirect($url) {
+        // Doing a soft-redirect so that we can return from the hook and not throw and EM error
+        echo("<script type=\"text/javascript\">window.location.href=\"$url\";</script>");
     }
 
 
