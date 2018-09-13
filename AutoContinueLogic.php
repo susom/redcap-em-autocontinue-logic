@@ -37,7 +37,9 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             // Get the logic and evaluate it
             $raw_logic = $auto_continue_logic [$instrument];
 
-            //// \Plugin::log($raw_logic, "DEBUG", "$project_id: Logic Before: " . $raw_logic);
+            $this->emDebug("Raw Logic", $raw_logic);
+
+            // \Plugin::log($raw_logic, "DEBUG", "$project_id: Logic Before: " . $raw_logic);
             //// Prepend current event as needed
             //if (\REDCap::isLongitudinal()) {
             //    $unique_event_name = \REDCap::getEventNames(true,false,$event_id);
@@ -56,7 +58,11 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             $logic_result = \REDCap::evaluateLogic($raw_logic, $record, $event_id, $repeat_instance, $instrument);
             // \Plugin::log("- $record at $instrument with [" . ($logic_result ? "true" : "false") . "] from $raw_logic");
 
+            $this->emDebug("Logic Result", $logic_result, $record, $event_id, $repeat_instance, $instrument);
+
             if ($logic_result == false) {
+
+                $this->emDebug("Logic False");
                 // If autocontinue is enabled - then redirect to next instrument
                 \REDCap::logEvent("$instrument skipped due to AutoContinue Logic EM", "", "", $record, $event_id, $project_id);
                 // $this->exitAfterHook();
@@ -97,6 +103,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 // Catch all
                 // exit ();
             } else {
+                $this->emDebug("Logic True");
                 // administer the instrument
             }
         }
@@ -104,8 +111,33 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
 
     public function redirect($url) {
+        $this->emDebug("Redirecting to URL: $url");
         // Doing a soft-redirect so that we can return from the hook and not throw and EM error
         echo("<script type=\"text/javascript\">window.location.href=\"$url\";</script>");
+    }
+
+
+    /**
+     *
+     * emLogging integration
+     *
+     */
+    function emLog() {
+        $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger->emLog($this->PREFIX, func_get_args(), "INFO");
+    }
+
+    function emDebug() {
+        // Check if debug enabled
+        if ($this->getSystemSetting('enable-system-debug-logging') || (!empty($_GET['pid']) && $this->getProjectSetting('enable-project-debug-logging'))) {
+            $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+            $emLogger->emLog($this->PREFIX, func_get_args(), "DEBUG");
+        }
+    }
+
+    function emError() {
+        $emLogger = \ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger->emLog($this->PREFIX, func_get_args(), "ERROR");
     }
 
 
