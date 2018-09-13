@@ -55,10 +55,10 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             //}
             //$logic_result = \LogicTester::evaluateLogicSingleRecord($raw_logic, $record);
 
-            $logic_result = \REDCap::evaluateLogic($raw_logic, $record, $event_id, $repeat_instance, $instrument);
+            $logic_result = \REDCap::evaluateLogic($raw_logic,                  $project_id, $record, $event_id, $repeat_instance); //, $instrument);
             // \Plugin::log("- $record at $instrument with [" . ($logic_result ? "true" : "false") . "] from $raw_logic");
 
-            $this->emDebug("Logic Result", $logic_result, $record, $event_id, $repeat_instance, $instrument);
+            $this->emDebug("Logic Result", "Raw: " . $raw_logic, $logic_result, "PID: " . $project_id, "RECORD: " . $record, "EVENT ID: " . $event_id, "INSTANCE: " . $repeat_instance, "INSTRUMENT" . $instrument);
 
             if ($logic_result == false) {
 
