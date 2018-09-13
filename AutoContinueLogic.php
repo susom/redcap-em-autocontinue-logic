@@ -37,21 +37,23 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             // Get the logic and evaluate it
             $raw_logic = $auto_continue_logic [$instrument];
 
-            // \Plugin::log($raw_logic, "DEBUG", "$project_id: Logic Before: " . $raw_logic);
-            // Prepend current event as needed
-            if (\REDCap::isLongitudinal()) {
-                $unique_event_name = \REDCap::getEventNames(true,false,$event_id);
-                // \Plugin::log("$project_id: unique_event_name: " . $unique_event_name);
-                $raw_logic = \LogicTester::logicPrependEventName($raw_logic, $unique_event_name);
-                // \Plugin::log("$project_id: logic after: " . $raw_logic);
-            }
+            //// \Plugin::log($raw_logic, "DEBUG", "$project_id: Logic Before: " . $raw_logic);
+            //// Prepend current event as needed
+            //if (\REDCap::isLongitudinal()) {
+            //    $unique_event_name = \REDCap::getEventNames(true,false,$event_id);
+            //    // \Plugin::log("$project_id: unique_event_name: " . $unique_event_name);
+            //    $raw_logic = \LogicTester::logicPrependEventName($raw_logic, $unique_event_name);
+            //    // \Plugin::log("$project_id: logic after: " . $raw_logic);
+            //}
+            //
+            //$isValid = \LogicTester::isValid($raw_logic);
+            //
+            //if (!$isValid) {
+            //    print "<div class='red'><h3><center>Supplied survey auto-continue logic is invalid:<br>$raw_logic</center></h3></div>";
+            //}
+            //$logic_result = \LogicTester::evaluateLogicSingleRecord($raw_logic, $record);
 
-            $isValid = \LogicTester::isValid($raw_logic);
-
-            if (!$isValid) {
-                print "<div class='red'><h3><center>Supplied survey auto-continue logic is invalid:<br>$raw_logic</center></h3></div>";
-            }
-            $logic_result = \LogicTester::evaluateLogicSingleRecord($raw_logic, $record);
+            $logic_result = \REDCap::evaluateLogic($raw_logic, $record, $event_id, $repeat_instance, $instrument);
             // \Plugin::log("- $record at $instrument with [" . ($logic_result ? "true" : "false") . "] from $raw_logic");
 
             if ($logic_result == false) {
@@ -63,7 +65,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
                 if ($end_survey_redirect_next_survey) {
                     // Try to get the next survey url
-                    $next_survey_url = \Survey::getAutoContinueSurveyUrl($record, $instrument, $event_id);
+                    $next_survey_url = \Survey::getAutoContinueSurveyUrl($record, $instrument, $event_id, $repeat_instance);
                     // print "Redirecting you to $next_survey_url";
                     // \Plugin::log("Soft Redirecting $record from $instrument to $next_survey_url");
                     // This is causing issues so I'm going to try a client-redirect
