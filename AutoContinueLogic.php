@@ -37,7 +37,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             // Get the logic and evaluate it
             $raw_logic = $auto_continue_logic [$instrument];
 
-            $this->emDebug("Raw Logic", $raw_logic);
+            $this->emDebug($auto_continue_logic, "Instrument: " . $instrument, "Raw Logic", $raw_logic);
 
             // \Plugin::log($raw_logic, "DEBUG", "$project_id: Logic Before: " . $raw_logic);
             //// Prepend current event as needed
@@ -101,7 +101,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 // Catch all
                 // exit ();
             } else {
-                $this->emDebug("Logic True");
+                $this->emDebug("Logic Result TRUE", "Raw: " . $raw_logic, $logic_result, "PID: " . $project_id, "RECORD: " . $record, "EVENT ID: " . $event_id, "INSTANCE: " . $repeat_instance, "INSTRUMENT" . $instrument);
                 // administer the instrument
             }
         }
