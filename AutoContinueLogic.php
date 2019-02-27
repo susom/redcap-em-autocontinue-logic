@@ -96,7 +96,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                     // If there is a normal end-of-survey url - go there
                     global $end_survey_redirect_url;
                     if ($end_survey_redirect_url != "") {
-                        $this->emDebug("Redirecting to end_survey_redirect_url: " . $next_survey_url, "Record $record / Instrument $instrument");
+                        $this->emDebug("Redirecting to end_survey_redirect_url: " . $end_survey_redirect_url, "Record $record / Instrument $instrument");
                         $this->redirect($end_survey_redirect_url);
                         return false;
                     } else {
