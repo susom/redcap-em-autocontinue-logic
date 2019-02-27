@@ -23,7 +23,7 @@
   ],
 
   "permissions": [
-    "hook_survey_page_top"
+    "redcap_survey_page_top"
   ],
 
   "links": {
@@ -45,7 +45,7 @@
   "project-settings": [
     {
       "key": "descriptive-text",
-      "name": "<b>This module is to be used with surveys and the 'autocontinue' checkbox in survey options.  It can be used as an alternative to the Survey Queue and does not require re-programming for each event.</b>",
+      "name": "<b>This module is to be used with surveys and the 'autocontinue' checkbox in survey options.  It can be used as an alternative to the Survey Queue and does not require re-programming for each event.  If you select and instrument, it will only be displayed IF the logic evaluates to true.  If you do not select an instrument it will always be rendered (default).</b>",
       "type": "descriptive"
     },
     {
@@ -70,15 +70,14 @@
       ]
     },
     {
-      "key": "descriptive-text2",
-      "name": "<b>You can also use the old-school JSON format below - but normally the config options above should suffice.</b>",
-      "type": "descriptive"
-    },
-    {
       "key": "autocontinue_logic",
-      "name": "Enter a json object where they keys are the instrument<br>names and the values are the expressions.<br>Be sure to include event names before variables<br>if needed in logic.<br>If a survey name exists as a key in this json array,<br>then the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
+      "name": "<b>Legacy JSON Format</b><br>In most cases you can safely ignore this and just use options above.<br>Enter a json object where they keys are the instrument<br>names and the values are the expressions.<br>Be sure to include event names before variables<br>if needed in logic.<br>If a survey name exists as a key in this json array,<br>then the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
       "required": false,
-      "type": "textarea"
+      "type": "textarea",
+      "branchingLogic": {
+        "field": "handle-incoming-text",
+        "value": "1"
+      }
     },
     {
       "key": "enable-project-debug-logging",
