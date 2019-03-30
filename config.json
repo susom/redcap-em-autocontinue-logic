@@ -9,7 +9,8 @@
     {
       "0.1": "Initial Development Version",
       "1.0.0": "Initial Release 2018-12-06",
-      "1.0.1": "Fix adaptive cat surveys - 2019-02-27"
+      "1.0.1": "Fix adaptive cat surveys - 2019-02-27",
+      "1.1.0": "Redesign to allow better skipping if multiple instruments are skipped by logic - 2019-03-29"
     }
   ],
 
@@ -27,7 +28,9 @@
   ],
 
   "permissions": [
-    "redcap_survey_page_top"
+    "redcap_survey_page_top",
+    "redcap_every_page_top",
+    "redcap_module_save_configuration"
   ],
 
   "links": {
@@ -75,7 +78,7 @@
     },
     {
       "key": "autocontinue_logic",
-      "name": "<b>Legacy JSON Format</b><br>In most cases you can safely ignore this and just use options above.<br>Enter a json object where they keys are the instrument<br>names and the values are the expressions.<br>Be sure to include event names before variables<br>if needed in logic.<br>If a survey name exists as a key in this json array,<br>then the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
+      "name": "<p></p><hr><b>Legacy JSON Format</b><br>In most cases you can safely ignore this and just use options above.<br>Enter a json object where they keys are the instrument<br>names and the values are the expressions.<br>Be sure to include event names before variables<br>if needed in logic.<br>If a survey name exists as a key in this json array,<br>then the survey will only be GIVEN if the logic is true,<br>otherwise it will be SKIPPED.<br><code>{ \"survey_instrument_name\":\"give survey if logic true\"}</code>",
       "required": false,
       "type": "textarea",
       "branchingLogic": {
