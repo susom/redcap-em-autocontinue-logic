@@ -126,6 +126,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
         // Load the autocontinue logic from config
         $this->loadConfig();
+        // $this->emDebug($this->auto_continue_logic);
 
         // if (empty($this->auto_continue_logic[$instrument])) {
         //     $this->emDebug("No ac logic specified for $instrument");
@@ -136,11 +137,13 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         // }
 
         // Check the current instrument first
-        if ( empty($this->auto_continue_logic[$instrument]) ||
-            REDCap::evaluateLogic($this->auto_continue_logic[$instrument], $project_id, $record, $event_id, $repeat_instance))
+        if ( empty($this->auto_continue_logic[$instrument]) ) {
+            $this->emDebug("No logic specified for $instrument");
+            return;
+        } elseif (REDCap::evaluateLogic($this->auto_continue_logic[$instrument], $project_id, $record, $event_id, $repeat_instance))
         {
             // We should administer this instrument - we can simply return out of this hook
-            $this->emDebug("Administering survey: $instrument");
+            $this->emDebug("Logic true - administering survey for $instrument in event $event_id, instance $repeat_instance");
             return;
         } else {
             $this->emDebug("Survey $instrument logic evaluates to FALSE - skipping");
@@ -151,6 +154,8 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         // before redirecting to find the next eligible survey
 
         // Evaluate it until we run out of instruments, pass logic, or find an instrument without any logic
+        // $this->emDebug(func_get_args());
+
         $last_instrument = $instrument;
         do {
 
@@ -190,7 +195,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 }
 
                 // Use survey_functions to generate a hash for this survey
-                list($next_participant_id, $next_hash) = Survey::getFollowupSurveyParticipantIdHash($this->next_survey_id, $record, $event_id, false, $instance);
+                list($next_participant_id, $next_hash) = Survey::getFollowupSurveyParticipantIdHash($this->next_survey_id, $record, $event_id, false, $repeat_instance);
                 $next_survey_url = APP_PATH_SURVEY_FULL . "?s=$next_hash";
                 if ($next_survey_url) {
                     $this->emDebug("Redirecting to next valid instrument $this->next_survey_form at $next_survey_url");
@@ -291,7 +296,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
      * @param $project_id
      */
     function redcap_module_save_configuration($project_id) {
-        $this->reorderSubSettingsBasedOnFieldOrder('ac_logic_list','form_name');
+        if (!empty($project_id)) $this->reorderSubSettingsBasedOnFieldOrder('ac_logic_list','form_name');
     }
 
 
