@@ -173,7 +173,12 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                     // Get full acknowledgement text (perform piping, if applicable)
                     $this->emDebug("Displaying acknowledgement from $instrument");
                     global $acknowledgement;
-                    exitSurvey($acknowledgement, false);
+
+                    if (method_exists('\Survey', 'exitSurvey')) {
+                        \Survey::exitSurvey($acknowledgement, false);
+                    } else {
+                        exitSurvey($acknowledgement, false);
+                    }
                 }
                 // Leave hook
                 return;
