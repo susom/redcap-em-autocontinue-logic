@@ -175,7 +175,10 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                     global $acknowledgement;
 
                     // Do piping
-                    $acknowledgement = \Piping::pipeSpecialTags($acknowledgement,$project_id,$record,$event_id,$repeat_instance,USERID,false,null,$instrument,false,false);
+                    //$acknowledgement = \Piping::pipeSpecialTags($acknowledgement,$project_id,$record,$event_id,$repeat_instance,USERID,false,null,$instrument,false,false);
+                    $acknowledgement = \Piping::replaceVariablesInLabel($acknowledgement, $record, $event_id,
+                        $repeat_instance, array(),
+                        true, $project_id, false, $repeat_instance, 1, false, false, $instrument, null, false, false);
 
                     if (method_exists('\Survey', 'exitSurvey')) {
                         \Survey::exitSurvey($acknowledgement, false);
