@@ -174,6 +174,9 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                     $this->emDebug("Displaying acknowledgement from $instrument");
                     global $acknowledgement;
 
+                    // Do piping
+                    $acknowledgement = \Piping::pipeSpecialTags($acknowledgement,$project_id,$record,$event_id,$repeat_instance,USERID,false,null,$instrument,false,false);
+
                     if (method_exists('\Survey', 'exitSurvey')) {
                         \Survey::exitSurvey($acknowledgement, false);
                     } else {
