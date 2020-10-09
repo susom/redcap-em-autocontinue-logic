@@ -279,7 +279,8 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                 $twiml = new Services_Twilio_Twiml();
                 $twiml->say(strip_tags($text), $say_array);
             }
-            exit;
+            //exit;
+            return;
         }
 
         // Class for html page display system
@@ -361,6 +362,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         // Footer
         $objHtmlPage->PrintFooter();
         //exit;
+        return;
     }
 
     /**
