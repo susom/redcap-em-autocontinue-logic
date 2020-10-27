@@ -183,15 +183,13 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                         $repeat_instance, array(),
                         true, $project_id, false, $repeat_instance, 1, false, false, $instrument, null, false, false);
 
-                    if (method_exists('\Survey', 'exitSurvey')) {
 
-                        \Survey::exitSurvey($acknowledgement, false);
-                    } else {
-                        exitSurvey($acknowledgement, false);
-                    }
+                    $this->exitSurvey($acknowledgement, false);
+
                 }
                 // Leave hook
                 return;
+                //$this->exitAfterHook();
             }
 
             // See if this downstream survey is ready to be rendered
@@ -329,7 +327,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         } else {
             print "<div style='margin:30px 0 0;line-height: 1.5em;'>$text</div>";
         }
-        // Only do the following if we just completed a survey
+        //xx Only do the following if we just completed a surveu
         if ($justCompletedSurvey) {
             global $fetched, $Proj, $pdf_auto_archive;
             // Store a completed survey response as a PDF in the File Repository
@@ -343,7 +341,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
             if ($response_id == '' && isset($_GET['__rh'])) {
                 $response_id = Survey::decryptResponseHash($_GET['__rh'], $GLOBALS['participant_id']);
             }
-            if (!isset($_GET['__endpublicsurvey']) && defined("PROJECT_ID")) { // Don't call this hook again; it has already been called before redirecting with __endpublicsurvey in the URL
+            if (!isset($_GET['__endpublicsurvey']) && defined("PROJECT_ID")) { //xx Don't call this hook again; it has already been called before redirecting with __endpublicsurvey in the URL
                 Hooks::call('redcap_survey_complete', array(PROJECT_ID, (is_numeric($response_id) || $fetched != '' ? $fetched : null), $_GET['page'], $_GET['event_id'], $group_id, $_GET['s'], $response_id, $_GET['instance']));
                 Survey::outputCustomJavascriptProjectStatusPublicSurveyCompleted(PROJECT_ID, (is_numeric($response_id) || $fetched != '' ? $fetched : null));
             }
@@ -367,7 +365,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         // Footer
         $objHtmlPage->PrintFooter();
         //exit;
-        return;
+        $this->exitAfterHook();;
     }
 
     /**
