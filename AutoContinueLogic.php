@@ -183,7 +183,12 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                         $repeat_instance, array(),
                         true, $project_id, false, $repeat_instance, 1, false, false, $instrument, null, false, false);
 
-                    $this->exitSurvey($acknowledgement, false);
+                    if (method_exists('\Survey', 'exitSurvey')) {
+
+                        \Survey::exitSurvey($acknowledgement, false);
+                    } else {
+                        exitSurvey($acknowledgement, false);
+                    }
                 }
                 // Leave hook
                 return;
