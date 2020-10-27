@@ -6,6 +6,9 @@ include_once("emLoggerTrait.php");
 
 use \REDCap;
 use \Survey;
+use \HtmlPage;
+use \RCView;
+use \Hooks;
 use \RepeatInstance;
 
 class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
@@ -180,11 +183,7 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
                         $repeat_instance, array(),
                         true, $project_id, false, $repeat_instance, 1, false, false, $instrument, null, false, false);
 
-                    if (method_exists('\Survey', 'exitSurvey')) {
-                        \Survey::exitSurvey($acknowledgement, false);
-                    } else {
-                        exitSurvey($acknowledgement, false);
-                    }
+                    $this->exitSurvey($acknowledgement, false);
                 }
                 // Leave hook
                 return;
@@ -236,7 +235,135 @@ class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
         $this->addSurveySettingsDisclaimer();
     }
 
+// Exit the survey and give message to participant
 
+    /**
+     * Need the Survey exitSurvey method but without the exit at the end.
+     *
+     * @param $text
+     * @param bool $largeFont
+     * @param null $closeSurveyBtnText
+     * @param bool $justCompletedSurvey
+     */
+    public  function exitSurvey($text, $largeFont=true, $closeSurveyBtnText=null, $justCompletedSurvey=true)
+    {
+        global $lang, $text_to_speech, $font_family, $text_size, $theme, $custom_theme_attr;
+
+        // If paths have not been set yet, call functions that set them (need paths set for HtmlPage class)
+        if (!defined('APP_PATH_WEBROOT'))
+        {
+            // Pull values from redcap_config table and set as global variables
+            System::setConfigVals();
+            // Set directory definitions
+            System::defineAppConstants();
+        }
+
+        // If a Twilio SMS or Voice Call
+        if (isset($_SERVER['HTTP_X_TWILIO_SIGNATURE']))
+        {
+            // Initialize Twilio
+            TwilioRC::init();
+            // An invalid choice was entered
+            if (SMS) {
+                // Instantiate a new Twilio Rest Client
+                $twilioClient = TwilioRC::client();
+                TwilioRC::sendSMS(strip_tags($text), $_POST['From'], $twilioClient);
+            } else {
+                // Set voice and language attributes for all Say commands
+                $language = TwilioRC::getLanguage();
+                $voice = TwilioRC::getVoiceGender();
+                $say_array = array('voice'=>$voice, 'language'=>$language);
+                // Set header to output TWIML/XML
+                header('Content-Type: text/xml');
+                // Output Twilio TwiML object
+                $twiml = new Services_Twilio_Twiml();
+                $twiml->say(strip_tags($text), $say_array);
+            }
+            //exit;
+            return;
+        }
+
+        // Class for html page display system
+        $objHtmlPage = new HtmlPage();
+        $objHtmlPage->addExternalJS(APP_PATH_JS . "FontSize.js");
+        $objHtmlPage->addExternalJS(APP_PATH_JS . "Survey.js");
+        $objHtmlPage->addExternalJS(APP_PATH_JS . "DataEntrySurveyCommon.js");
+        if (($text_to_speech == '1' && (!isset($_COOKIE['texttospeech']) || $_COOKIE['texttospeech'] == '1'))
+            || ($text_to_speech == '2' && isset($_COOKIE['texttospeech']) && $_COOKIE['texttospeech'] == '1')) {
+            $objHtmlPage->addExternalJS(APP_PATH_JS . "TextToSpeech.js");
+        }
+        $objHtmlPage->addStylesheet("survey.css", 'screen,print');
+        // Set the font family
+        $objHtmlPage = Survey::applyFont($font_family, $objHtmlPage);
+        // Set the size of survey text
+        $objHtmlPage = Survey::setTextSize($text_size, $objHtmlPage);
+        // If survey theme is being used, then apply it here
+        $objHtmlPage = Survey::applyTheme($theme, $objHtmlPage, $custom_theme_attr);
+        $objHtmlPage->PrintHeader();
+        print "<div style='margin:10px;'>";
+        // Display a "close" button at top
+        if ($closeSurveyBtnText !== false) {
+            print 	RCView::div(array('style'=>'padding:10px 10px 0;'),
+                                 RCView::button(array('onclick'=>"
+				            var pidurl = (typeof pid == 'undefined') ? '' : '&pid='+pid;
+							try{ modifyURL('index.php?__closewindow=1'+pidurl); }catch(e){} 
+							try{ window.open('', '_self', ''); }catch(e){} 
+							try{ window.close(); }catch(e){} 
+							try{ window.top.close(); }catch(e){} 
+							try{ open(window.location, '_self').close(); }catch(e){} 
+							try{ self.close(); }catch(e){} 
+							window.location.href = app_path_webroot_full+'surveys/index.php?__closewindow=1'+pidurl;
+						", 'class'=>'jqbuttonmed'),
+                                     ($closeSurveyBtnText == null ? $lang['dataqueries_278'] : $closeSurveyBtnText)
+                                 )
+            );
+        }
+        // Display the text
+        if ($largeFont) {
+            print "<div style='font-size: 16px;margin:30px 0;font-weight:bold;'>$text</div>";
+        } else {
+            print "<div style='margin:30px 0 0;line-height: 1.5em;'>$text</div>";
+        }
+        // Only do the following if we just completed a survey
+        if ($justCompletedSurvey) {
+            global $fetched, $Proj, $pdf_auto_archive;
+            // Store a completed survey response as a PDF in the File Repository
+            if ($pdf_auto_archive > 0 && !isset($_GET['__endpublicsurvey'])) {
+                Survey::archiveResponseAsPDF($fetched, $_GET['event_id'], $_GET['page'], $_GET['instance']);
+            }
+            // REDCap Hook injection point: Pass project/record/survey attributes to method
+            $group_id = (empty($Proj->groups)) ? null : Records::getRecordGroupId(PROJECT_ID, $fetched);
+            if (!is_numeric($group_id)) $group_id = null;
+            $response_id = isset($_POST['__response_id__']) ? $_POST['__response_id__'] : '';
+            if ($response_id == '' && isset($_GET['__rh'])) {
+                $response_id = Survey::decryptResponseHash($_GET['__rh'], $GLOBALS['participant_id']);
+            }
+            if (!isset($_GET['__endpublicsurvey']) && defined("PROJECT_ID")) { // Don't call this hook again; it has already been called before redirecting with __endpublicsurvey in the URL
+                Hooks::call('redcap_survey_complete', array(PROJECT_ID, (is_numeric($response_id) || $fetched != '' ? $fetched : null), $_GET['page'], $_GET['event_id'], $group_id, $_GET['s'], $response_id, $_GET['instance']));
+                Survey::outputCustomJavascriptProjectStatusPublicSurveyCompleted(PROJECT_ID, (is_numeric($response_id) || $fetched != '' ? $fetched : null));
+            }
+            ## Destroy the session on server and session cookie in user's browser
+            $_SESSION = array();
+            session_unset();
+            if (session_status() === PHP_SESSION_ACTIVE) session_destroy();
+            unset($_COOKIE['survey']);
+            deletecookie('survey');
+            // To prevent refreshing the page and resubmitting data, redirect for force a GET request to end the survey
+            if ($_SERVER['REQUEST_METHOD'] != 'GET' && $GLOBALS['public_survey'] && !isset($_GET['__endpublicsurvey'])) {
+                $responseHash = Survey::encryptResponseHash($response_id, $GLOBALS['participant_id']);
+                redirect($_SERVER['REQUEST_URI'] . "&__endpublicsurvey=1&__rh=$responseHash");
+            }
+            // REDCap Hook Injection point
+            if (defined("PROJECT_ID")) {
+                Hooks::call('redcap_survey_acknowledgement_page', array(PROJECT_ID, (is_numeric($response_id) || $fetched != '' ? $fetched : null), $_GET['page'], $_GET['event_id'], $group_id, $_GET['s'], $response_id, $_GET['instance']));
+            }
+        }
+        print "</div>";
+        // Footer
+        $objHtmlPage->PrintFooter();
+        //exit;
+        return;
+    }
 
     /**
      * This complex function re-orders the autocontinue logic fields into the same order as the survey instruments
