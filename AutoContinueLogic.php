@@ -10,6 +10,7 @@ use \HtmlPage;
 use \RCView;
 use \Hooks;
 use \RepeatInstance;
+use Records;
 
 class AutoContinueLogic extends \ExternalModules\AbstractExternalModule {
 
